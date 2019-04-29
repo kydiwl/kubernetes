@@ -1,0 +1,8 @@
+https://devopscube.com/kubernetes-deployment-tutorial/
+
+https://devopscube.com/install-configure-prometheus-linux/
+
+https://devopscube.com/monitor-linux-servers-prometheus-node-exporter/
+
+https://devopscube.com/integrate-visualize-prometheus-grafana/
+

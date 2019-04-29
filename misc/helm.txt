@@ -1,0 +1,102 @@
+cd /tmp
+
+curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.13.1-linux-amd64.tar.gz
+
+tar -xf helm-v2.13.1-linux-amd64.tar.gz
+
+sudo cp linux-amd64/helm /usr/bin
+
+cd
+
+mkdir helm
+
+vi helm/service-account.yml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: kube-system
+
+kubectl apply -f helm/service-account.yml
+
+kubectl get serviceaccounts -n kube-system
+
+vi helm/role-binding.yml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller-clusterrolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: tiller
+    namespace: kube-system
+    
+kubectl apply -f helm/role-binding.yml
+
+kubectl get clusterrolebindings.rbac.authorization.k8s.io
+
+helm init --service-account tiller --wait
+
+kubectl get pods -n kube-system
+
+mkdir monitoring
+
+vi monitoring/namespace.yml
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: monitoring
+  
+kubectl apply -f monitoring/namespace.yml
+
+kubectl get namespaces
+
+helm repo update
+
+helm install stable/prometheus --namespace monitoring --name prometheus
+
+kubectl get pods -n monitoring
+
+-------------------------------
+# Grafana
+
+vi monitoring/grafana/config.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-grafana-datasource
+  namespace: monitoring
+  labels:
+    grafana_datasource: '1'
+data:
+  datasource.yaml: |-
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      orgId: 1
+      url: http://prometheus-server.monitoring.svc.cluster.local
+
+kubectl apply -f monitoring/grafana/config.yml
+
+kubectl get configmaps -n monitoring
+
+vi monitoring/grafana/values.yml
+sidecar:
+  image: xuxinkun/k8s-sidecar:0.0.7
+  imagePullPolicy: IfNotPresent
+  datasources:
+    enabled: true
+    label: grafana_datasource
+
+helm install stable/grafana -f  monitoring/grafana/values.yml --namespace monitoring --name grafana
+
+kubectl get pods -n monitoring
+
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+

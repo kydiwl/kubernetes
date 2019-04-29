@@ -1,0 +1,71 @@
+cat /proc/swaps
+
+sudo swapoff -a
+
+#remove or comment out swaps identified in the command above
+sudo vi /etc/fstab
+
+sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
+
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+sudo apt update && sudo apt upgrade -y
+
+sudo apt install -y docker-ce=18.06.2~ce~3-0~ubuntu
+#sudo apt install -y docker.io
+
+##[WARNING IsDockerSystemdCheck]: detected "cgroupfs" as the Docker ##  cgroup driver. The recommended driver is "systemd". Please follow ##  the guide at https://kubernetes.io/docs/setup/cri/
+
+sudo vi /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+
+sudo mkdir -p /etc/systemd/system/docker.service.d
+
+sudo systemctl daemon-reload
+
+sudo systemctl restart docker
+
+sudo systemctl enable docker
+
+sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+sudo echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt update && sudo apt upgrade -y
+
+sudo apt install kubelet kubeadm kubectl -y
+
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16
+
+mkdir -p $HOME/.kube && sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+kubectl get nodes
+
+watch kubectl get pods --all-namespaces
+
+## Add calico networking
+kubectl apply -f https://docs.projectcalico.org/v3.5/getting-started/kubernetes/installation/hosted/etcd.yaml
+
+kubectl apply -f https://docs.projectcalico.org/v3.5/getting-started/kubernetes/installation/hosted/calico.yaml
+
+git clone https://github.com/kubernetes/kube-state-metrics.git
+
+kubectl create -f kube-state-metrics/kubernetes
+
+watch kubectl get pods --all-namespaces
+# wait until all pods in kube-system are running
+
+## Taint nodes for scheduling
+kubectl taint nodes --all node-role.kubernetes.io/master-
+
+
+kubectl get nodes
