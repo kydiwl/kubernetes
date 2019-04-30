@@ -1,6 +1,8 @@
 # Get download url from https://prometheus.io/download/
 https://github.com/prometheus/node_exporter/releases/download/v0.17.0/node_exporter-0.17.0.linux-amd64.tar.gz
 
+cd /tmp
+
 # Download the latest node exporter package
 curl -LO https://github.com/prometheus/node_exporter/releases/download/v0.17.0/node_exporter-0.17.0.linux-amd64.tar.gz
 
@@ -9,6 +11,8 @@ tar -xvf node_exporter-0.17.0.linux-amd64.tar.gz
 
 # Move the the node exporter binary usr/local/bin/
 sudo mv node_exporter-0.17.0.linux-amd64/node_exporter /usr/local/bin/
+
+cd
 
 # Create node_exporter user
 sudo useradd -rs /bin/false node_exporter
@@ -35,12 +39,3 @@ sudo systemctl start node_exporter
 
 # Enable on reboot
 sudo systemctl enable node_exporter
-
-# Configure the server as a target on Prometheus
-sudo vi /etc/prometheus/prometheus.yml
-- job_name: 'node_exporter_metrics'
-    scrape_interval: 5s
-    static_configs:
-      - targets: ['<MACHINE-IP>:9100']
-
-sudo systemctl restart prometheus
