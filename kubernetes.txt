@@ -1,3 +1,5 @@
+sudo apt update && sudo apt upgrade -y
+
 cat /proc/swaps
 
 sudo swapoff -a
