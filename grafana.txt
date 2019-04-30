@@ -16,6 +16,7 @@ sudo systemctl enable grafana-server
 
 # Get IP Address of prometheus service
 kubectl get svc -n monitoring
+
 # Put IP address in url
 Datasource URL http://IP_ADDRESS:8080
 
