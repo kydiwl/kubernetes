@@ -52,6 +52,18 @@ kubectl get nodes
 
 watch kubectl get pods --all-namespaces
 
+#######################################################################################
+NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE   #
+kube-system   coredns-fb8b8dccf-gvmv4              0/1     Pending   0          4m47s #
+kube-system   coredns-fb8b8dccf-lwzxx              0/1     Pending   0          4m47s #
+kube-system   etcd-ubuntu-k8s                      1/1     Running   0          3m58s #
+kube-system   kube-apiserver-ubuntu-k8s            1/1     Running   0          3m51s #
+kube-system   kube-controller-manager-ubuntu-k8s   1/1     Running   0          4m    #
+kube-system   kube-proxy-7m69f                     1/1     Running   0          4m47s #
+kube-system   kube-scheduler-ubuntu-k8s            1/1     Running   0          3m58s #
+#######################################################################################
+
+
 ## Add calico networking
 kubectl apply -f https://docs.projectcalico.org/v3.5/getting-started/kubernetes/installation/hosted/etcd.yaml
 
@@ -61,11 +73,20 @@ git clone https://github.com/kubernetes/kube-state-metrics.git
 
 kubectl create -f kube-state-metrics/kubernetes
 
+git clone https://github.com/kydiwl/kubernetes.git
+
+# Replace <SERVER_IP> with actual server IP in monitoring/prometheus/prometheus-config-map.yml
+ip a
+vi kubernetes/monitoring/prometheus/prometheus-config-map.yml
+
+kubectl create namespace monitoring
+
+kubectl create -f kubernetes/monitoring/prometheus
+
 watch kubectl get pods --all-namespaces
 # wait until all pods in kube-system are running
 
 ## Taint nodes for scheduling
 kubectl taint nodes --all node-role.kubernetes.io/master-
-
 
 kubectl get nodes
